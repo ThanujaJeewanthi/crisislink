@@ -1,0 +1,9 @@
+# Ignore Terraform binaries and state files
+.terraform/
+*.tfstate
+*.tfstate.backup
+
+# Ignore Python virtual environments and artifacts
+__pycache__/
+*.pyc
+venv/
