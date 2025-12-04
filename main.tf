@@ -114,3 +114,28 @@ resource "aws_db_instance" "user_db" {
   storage_encrypted    = true  
   tags = { Name = "CrisisLink RDS" }  
 }  
+
+resource "aws_apigatewayv2_api" "crisislink_api" {  
+  name          = "CrisisLinkAPI"  
+  protocol_type = "HTTP"  
+}  
+
+resource "aws_apigatewayv2_integration" "lambda_integration" {  
+  api_id             = aws_apigatewayv2_api.crisislink_api.id  
+  integration_type   = "AWS_PROXY"  
+  integration_uri    = "arn:aws:lambda:us-east-1:336046628029:function:crisislink-handler"  
+}  
+
+resource "aws_lambda_permission" "apigw_lambda" {  
+  statement_id  = "AllowExecutionFromAPIGateway"  
+  action        = "lambda:InvokeFunction"  
+  function_name = "crisislink-handler"  
+  principal     = "apigateway.amazonaws.com"  
+  source_arn    = "${aws_apigatewayv2_api.crisislink_api.execution_arn}/*/*"  
+}  
+
+resource "aws_apigatewayv2_route" "post_route" {
+  api_id    = aws_apigatewayv2_api.crisislink_api.id
+  route_key = "POST /requests"
+  target    = "integrations/${aws_apigatewayv2_integration.lambda_integration.id}"
+}
